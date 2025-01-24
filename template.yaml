@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  CodeQuest SAM Template
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+    VpcConfig:
+      SecurityGroupIds:
+        - sg-123
+        - sg-456
+
+    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel.
+    # Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
+    LoggingConfig:
+      LogFormat: JSON
+
+Resources:
+  CommonLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: CommonLayer
+      CompatibleRuntimes:
+        - python3.13
+      ContentUri: common_layer/
+    Metadata:
+      BuildMethod: makefile
+
+  QueryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda_functions/query
+      Handler: app.query_lambda_handler
+      Runtime: python3.13
+      Timeout: 20
+      Layers:
+        - !Ref CommonLayer
+      Architectures:
+      - x86_64
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /code/search
+            Method: get
+
+    # This job will be called manually / ad-hoc
+    IngestionFunction:
+      Type: AWS::Serverless::Function
+      Properties:
+        CodeUri: lambda_functions/ingestion/
+        Handler: app.ingestion_lambda_handler
+        Runtime: python3.13
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  QueryApi:
+    Description: API Gateway endpoint URL for Prod stage for Query function
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/code/search"
+  QueryFunction:
+    Description: Query Lambda Function ARN
+    Value: !GetAtt QueryFunction.Arn
+  IngestionFunction:
+    Description: Ingestion Lambda Function ARN
+    Value: !GetAtt IngestionFunction.Arn
+  QueryFunctionIamRole:
+    Description: Implicit IAM Role created for Query function
+    Value: !GetAtt QueryFunctionRole.Arn
