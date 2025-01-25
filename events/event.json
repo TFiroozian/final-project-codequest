@@ -1,0 +1,17 @@
+{
+  "resource": "/code/search",
+  "path": "/code/search",
+  "httpMethod": "GET",
+  "queryStringParameters": {
+    "query": "How to query in bigquery and store results in Elasticsearch?"
+  },
+  "headers": {
+    "Accept": "application/json"
+  },
+  "requestContext": {
+    "resourcePath": "/code/search",
+    "httpMethod": "GET"
+  },
+  "body": null,
+  "isBase64Encoded": false
+}
