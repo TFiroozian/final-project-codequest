@@ -28,8 +28,6 @@ try:
         model_id=os.environ.get("BEDROCK_MODEL_ID"),
     )
 
-    es_client = get_es_client()
-
     # In a real production application, I would move this step into a separate
     # migration or setup job prior to ingestion. It's included here for simplicity.
     create_index_with_dense_vector(

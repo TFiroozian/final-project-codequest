@@ -6,7 +6,7 @@ Description: >
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 10
 
     VpcConfig:
       SecurityGroupIds:
@@ -47,13 +47,16 @@ Resources:
             Path: /code/search
             Method: get
 
-    # This job will be called manually / ad-hoc
-    IngestionFunction:
-      Type: AWS::Serverless::Function
-      Properties:
-        CodeUri: lambda_functions/ingestion/
-        Handler: app.ingestion_lambda_handler
-        Runtime: python3.13
+  # This job will be called manually / ad-hoc
+  IngestionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda_functions/ingestion/
+      Handler: app.ingestion_lambda_handler
+      Runtime: python3.13
+      Timeout: 60
+      Layers:
+        - !Ref CommonLayer
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
