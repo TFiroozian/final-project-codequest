@@ -39,7 +39,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: lambda_functions/query
-      Handler: app.query_lambda_handler
+      Handler: app.lambda_handler
       Runtime: python3.13
       Timeout: 20
       Layers:
@@ -47,7 +47,7 @@ Resources:
       Architectures:
       - x86_64
       Events:
-        HelloWorld:
+        QueryApi:
           Type: Api
           Properties:
             Path: /code/search
@@ -58,7 +58,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: lambda_functions/ingestion/
-      Handler: app.ingestion_lambda_handler
+      Handler: app.lambda_handler
       Runtime: python3.13
       Timeout: 60
       Layers:
