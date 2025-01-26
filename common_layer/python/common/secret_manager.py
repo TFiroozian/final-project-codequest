@@ -17,7 +17,7 @@ def export_secrets_to_env(secret_name: str = None):
 
     :param secret_name: The name or ARN of the secret to retrieve from AWS Secrets Manager.
     """
-    # Check if running locally
+    # Check if running locally. SAM CLI automaticaly sets the AWS_SAM_LOCAL variable
     if os.getenv("AWS_SAM_LOCAL") == "true":
         logger.info("Running locally. Loading variables from .env...")
         load_dotenv()

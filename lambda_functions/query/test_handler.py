@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from lambda_functions.query.handler import QueryHandler
+from .handler import QueryHandler
 
 
 @pytest.fixture
@@ -69,3 +69,53 @@ def test_missing_query_parameter_returns_400(embedding_svc, handler):
 
     assert response["statusCode"] == 400
     assert body["error"] == "No query text provided in event."
+
+
+def test_no_results_from_elasticsearch(embedding_svc, handler):
+    embedding_svc.query_elasticsearch.return_value = {
+        "hits": {
+            "total": {"value": 0, "relation": "eq"},
+            "hits": [],
+        }
+    }
+
+    test_event = {"queryStringParameters": {"query": "Non-matching query text"}}
+    response = handler.handle(event=test_event, context=None)
+    body = json.loads(response["body"])
+
+    embedding_svc.generate_embedding.assert_called_once_with(
+        text="Non-matching query text"
+    )
+    embedding_svc.query_elasticsearch.assert_called_once()
+
+    assert response["statusCode"] == 200
+    assert body["results"] == []  # No results returned
+
+
+def test_embedding_generation_failure(embedding_svc, handler):
+    embedding_svc.generate_embedding.side_effect = Exception("Embedding service error")
+
+    test_event = {"queryStringParameters": {"query": "Sample query text"}}
+    response = handler.handle(event=test_event, context=None)
+    body = json.loads(response["body"])
+
+    embedding_svc.generate_embedding.assert_called_once_with(text="Sample query text")
+
+    assert response["statusCode"] == 500
+    assert body["error"] == "Embedding generation failed: Embedding service error"
+
+
+def test_elasticsearch_query_failure(embedding_svc, handler):
+    embedding_svc.query_elasticsearch.side_effect = Exception(
+        "Elasticsearch query error"
+    )
+
+    test_event = {"queryStringParameters": {"query": "Sample query text"}}
+    response = handler.handle(event=test_event, context=None)
+    body = json.loads(response["body"])
+
+    embedding_svc.generate_embedding.assert_called_once_with(text="Sample query text")
+    embedding_svc.query_elasticsearch.assert_called_once()
+
+    assert response["statusCode"] == 500
+    assert body["error"] == "Elasticsearch query failed: Elasticsearch query error"

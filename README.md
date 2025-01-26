@@ -57,3 +57,9 @@ sam deploy --template-file template.yaml \
            --stack-name CodeQuestStack \
            --capabilities CAPABILITY_IAM
 ```
+
+
+### 7. Run Unit Tests Locally
+```bash
+python3 -m pytest -s -v
+```

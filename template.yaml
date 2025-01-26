@@ -41,6 +41,7 @@ Resources:
       CodeUri: lambda_functions/query
       Handler: app.lambda_handler
       Runtime: python3.13
+      # TODO: can we reduce timeout? 
       Timeout: 20
       Layers:
         - !Ref CommonLayer
