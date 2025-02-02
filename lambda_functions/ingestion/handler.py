@@ -25,15 +25,11 @@ class IngestionHandler:
                 embedding = self._embedding_svc.generate_embedding(text=combined_text)
 
                 # Create Elasticsearch document
-                es_documents.append(
-                    {"embedding": embedding, "combined_text": combined_text}
-                )
+                es_documents.append({"embedding": embedding, "combined_text": combined_text})
             except ClientError as e:
                 logger.error(f"Error generating embedding", extra={"error": e})
                 continue
 
         # Save documents to Elasticsearch
         self._embedding_svc.save_to_elasticsearch(es_documents)
-        logger.info(
-            f"Processed and saved {len(es_documents)} documents to Elasticsearch."
-        )
+        logger.info(f"Processed and saved {len(es_documents)} documents to Elasticsearch.")

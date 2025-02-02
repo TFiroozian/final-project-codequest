@@ -72,6 +72,4 @@ def create_index_with_dense_vector(client, index_name, dims):
         logger.info(f"Index {index_name} already exists!")
     else:
         client.indices.create(index=index_name, body=mapping)
-        logger.info(
-            f"Index {index_name} created successfully with dense_vector mapping."
-        )
+        logger.info(f"Index {index_name} created successfully with dense_vector mapping.")

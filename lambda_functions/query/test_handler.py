@@ -52,9 +52,7 @@ def test_returns_results_from_elasticsearch(embedding_svc, handler):
     response = handler.handle(event=test_event, context=None)
     body = json.loads(response["body"])
 
-    embedding_svc.query_elasticsearch.assert_called_once_with(
-        query_embedding=[0.1, 0.2, 0.3]
-    )
+    embedding_svc.query_elasticsearch.assert_called_once_with(query_embedding=[0.1, 0.2, 0.3])
 
     embedding_svc.generate_embedding.assert_called_once_with(text="Sample query text")
 
@@ -99,9 +97,7 @@ def test_no_results_from_elasticsearch(embedding_svc, handler):
     response = handler.handle(event=test_event, context=None)
     body = json.loads(response["body"])
 
-    embedding_svc.generate_embedding.assert_called_once_with(
-        text="Non-matching query text"
-    )
+    embedding_svc.generate_embedding.assert_called_once_with(text="Non-matching query text")
     embedding_svc.query_elasticsearch.assert_called_once()
 
     assert response["statusCode"] == 200
@@ -134,9 +130,7 @@ def test_elasticsearch_query_failure(embedding_svc, handler):
     WHEN an exception occurs when calling ES
     THEN the lambda function returns 500 and no result
     """
-    embedding_svc.query_elasticsearch.side_effect = Exception(
-        "Elasticsearch query error"
-    )
+    embedding_svc.query_elasticsearch.side_effect = Exception("Elasticsearch query error")
 
     test_event = {"queryStringParameters": {"query": "Sample query text"}}
     response = handler.handle(event=test_event, context=None)
