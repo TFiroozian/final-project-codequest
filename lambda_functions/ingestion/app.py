@@ -1,10 +1,8 @@
 import json
 import sys
 from handler import IngestionHandler
-from libraries import (
-    StackOverflowDataRetriever,
-    create_index_with_dense_vector,
-)
+from retrievers import StackOverflowDataRetriever
+from utils import create_index_with_dense_vector
 
 
 from common.init_service import initialize_services
@@ -26,15 +24,15 @@ try:
 
     data_retriever = StackOverflowDataRetriever()
 
+    ingestion_handler = IngestionHandler(embedding_svc, data_retriever)
 except Exception as e:
-    logger.error("Failed to initialize dependency services", extra={"error": str(e)})
+    logger.exception("Failed to initialize dependency services", e)
     sys.exit(1)
 
 
 def lambda_handler(event, context):
     try:
-        embedding_svc = initialize_services()
-        return IngestionHandler(embedding_svc, data_retriever).handle(event, context)
+        return ingestion_handler.handle(event, context)
 
     except Exception as e:
         logger.exception("Unexpected Error", e)
@@ -42,3 +40,7 @@ def lambda_handler(event, context):
             "statusCode": 500,
             "body": json.dumps({"error": "Internal failure"}),
         }
+
+
+if __name__ == "__main__":
+    ingestion_handler.handle() 

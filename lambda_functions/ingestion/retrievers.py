@@ -1,8 +1,9 @@
+import json
 import logging
 import os
 from google.cloud import bigquery
+from google.oauth2 import service_account
 
-os.environ["GOOGLE_CLOUD_PROJECT"] = "final-school-project-444820"
 
 logger = logging.getLogger()
 
@@ -16,7 +17,11 @@ class StackOverflowDataRetriever:
         """
         Initializes the BigQuery client using the specified Google Cloud project ID.
         """
-        self.client = bigquery.Client()
+        credentials = StackOverflowDataRetriever._get_credentials()
+        self.client = bigquery.Client(
+            client_options=credentials,
+            project=credentials.project_id
+        )
 
     def get_dataframe(self, number_of_records: int = 100):
         """
@@ -49,27 +54,21 @@ class StackOverflowDataRetriever:
         result_df = query_job.to_dataframe()
         return result_df
 
+    @staticmethod
+    def _get_credentials():
+        key_path = os.getenv("SERVICE_ACCOUNT_KEY_PATH") 
+        key_content = os.getenv("SERVICE_ACCOUNT_KEY")  
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        if key_path:
+            return service_account.Credentials.from_service_account_file(
+                key_path,
+                scopes=scopes,
+            )
+        elif key_content:
+            return service_account.Credentials.from_service_account_info(
+                json.loads(key_content),
+                scopes=scopes,
+            )
+        else:
+            raise ValueError("Service account credentials unavailable") 
 
-def create_index_with_dense_vector(client, index_name, dims):
-    """ "Create an Elasticsearch index with a dense_vector field for embeddings"""
-    mapping = {
-        "mappings": {
-            "properties": {
-                "combined_text": {"type": "text"},
-                "embedding": {
-                    "type": "dense_vector",
-                    "dims": dims,
-                    "index": True,
-                    "similarity": "cosine",
-                },
-                "token_count": {"type": "integer"},
-            }
-        }
-    }
-
-    # Create the index
-    if client.indices.exists(index=index_name):
-        logger.info(f"Index {index_name} already exists!")
-    else:
-        client.indices.create(index=index_name, body=mapping)
-        logger.info(f"Index {index_name} created successfully with dense_vector mapping.")

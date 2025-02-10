@@ -30,7 +30,7 @@ Resources:
     Properties:
       LayerName: CommonLayer
       CompatibleRuntimes:
-        - python3.13
+        - python3.12
       ContentUri: common_layer/
     Metadata:
       BuildMethod: makefile
@@ -40,11 +40,16 @@ Resources:
     Properties:
       CodeUri: lambda_functions/query
       Handler: app.lambda_handler
-      Runtime: python3.13
+      Runtime: python3.12
       # TODO: can we reduce timeout? 
       Timeout: 20
       Layers:
         - !Ref CommonLayer
+      Environment:
+        Variables:
+          ES_HOST: !Join [ "", [ "https://", !ImportValue OpensearchEndpointURL, ":443"  ] ] 
+          ES_INDEX_NAME: codequest-embedding
+          BEDROCK_MODEL_ID: amazon.titan-embed-text-v2:0
       Architectures:
       - x86_64
       Events:
@@ -60,10 +65,16 @@ Resources:
     Properties:
       CodeUri: lambda_functions/ingestion/
       Handler: app.lambda_handler
-      Runtime: python3.13
-      Timeout: 60
+      Runtime: python3.12
+      Timeout: 300
       Layers:
         - !Ref CommonLayer
+      Environment:
+        Variables:
+          ES_HOST: !Join [ "", [ "https://", !ImportValue OpensearchEndpointURL, ":443"  ] ] 
+          ES_INDEX_NAME: codequest-embedding
+          BEDROCK_MODEL_ID: amazon.titan-embed-text-v2:0
+          SERVICE_ACCOUNT_KEY: '{{resolve:secretsmanager:GCloudServiceAccountKeyABF9-VqAXFmhkQpYI}}'
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -81,3 +92,10 @@ Outputs:
   QueryFunctionIamRole:
     Description: Implicit IAM Role created for Query function
     Value: !GetAtt QueryFunctionRole.Arn
+    Export:
+      Name: "QueryFunctionIamRole"
+  IngestionFunctionIamRole:
+    Description: Implicit IAM Role created for Query function
+    Value: !GetAtt IngestionFunctionRole.Arn
+    Export:
+      Name: "IngestionFunctionIamRole"

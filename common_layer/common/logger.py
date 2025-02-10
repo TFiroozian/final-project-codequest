@@ -21,13 +21,7 @@ class JSONFormatter(logging.Formatter):
 def setup_logger(level: str = logging.DEBUG) -> logging.Logger:
     """Configures the root logger with jsonFormatter and specified log level."""
 
+    logging.basicConfig(level=level)
+
     log = logging.getLogger()
-    # To avoid adding more handlers if the handler already exists
-    if not log.handlers:
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(JSONFormatter())
-
-        log.addHandler(handler)
-        log.setLevel(level)
-
     return log

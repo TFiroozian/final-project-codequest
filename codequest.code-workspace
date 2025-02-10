@@ -1,0 +1,16 @@
+{
+  "folders": [
+    {
+      "path": "common_layer/python"
+    },
+    {
+      "path": "lambda_functions"
+    },
+    {
+      "path": "infra"
+    },
+    {
+      "path": "."
+    }
+  ]
+}
