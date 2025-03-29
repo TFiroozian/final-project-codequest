@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 
 from common.logger import setup_logger
@@ -11,6 +12,7 @@ logger = setup_logger()
 try:
     embedding_svc = initialize_services()
 except Exception as e:
+    logger.info(f"hello {os.environ.get("ES_HOST")}")
     logger.error("Failed to initialize dependency services", extra={"error": str(e)})
     sys.exit(1)
 

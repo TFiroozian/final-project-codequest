@@ -41,3 +41,4 @@ class IngestionHandler:
         self._embedding_svc.save_to_elasticsearch(es_documents)
         logger.info(f"Processed and saved {len(es_documents)} documents to Elasticsearch.")
         return {"statusCode": 200, "body": json.dumps({"results": len(es_documents)})}
+

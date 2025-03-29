@@ -48,7 +48,8 @@ Resources:
       Environment:
         Variables:
           ES_HOST: !Join [ "", [ "https://", !ImportValue OpensearchEndpointURL, ":443"  ] ] 
-          ES_INDEX_NAME: codequest-embedding
+          # ES_INDEX_NAME: codequest-embedding
+          ES_INDEX_NAME: "code-snippets-embeddings"
           BEDROCK_MODEL_ID: amazon.titan-embed-text-v2:0
       Architectures:
       - x86_64
@@ -72,7 +73,8 @@ Resources:
       Environment:
         Variables:
           ES_HOST: !Join [ "", [ "https://", !ImportValue OpensearchEndpointURL, ":443"  ] ] 
-          ES_INDEX_NAME: codequest-embedding
+          # ES_INDEX_NAME: codequest-embedding
+          ES_INDEX_NAME: "code-snippets-embeddings"
           BEDROCK_MODEL_ID: amazon.titan-embed-text-v2:0
           SERVICE_ACCOUNT_KEY: '{{resolve:secretsmanager:GCloudServiceAccountKeyABF9-VqAXFmhkQpYI}}'
 

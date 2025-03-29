@@ -20,7 +20,8 @@ def initialize_services() -> EmbeddingService:
 
     export_secrets_to_env()
 
-    es_client = get_es_client(es_host=os.environ.get("ES_HOST"))
+    # TODO: read the default value from .env
+    es_client = get_es_client(es_host=os.environ.get("ES_HOST") or "http://elasticsearch:9200")
     bedrock_client = get_bedrock_client()
 
     embedding_svc = EmbeddingService(

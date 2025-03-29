@@ -22,9 +22,7 @@ def embedding_svc():
 @pytest.fixture
 def data_retriever():
     retriever = MagicMock(spec=StackOverflowDataRetriever)
-    # Mock get_dataframe to return a sample DataFrame
     mock_dataframe = MagicMock()
-    # Make .iterrows() return two tuples: (index, row_dict)
     mock_dataframe.iterrows.return_value = [
         (0, {"question_title": "Title1", "question_body": "Body1", "accepted_answer_body": "Answer1"}),
         (1, {"question_title": "Title2", "question_body": "Body2", "accepted_answer_body": "Answer2"}),
