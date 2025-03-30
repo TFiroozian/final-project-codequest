@@ -67,7 +67,7 @@ def test_returns_results_from_elasticsearch(embedding_svc, handler, bedrock_clie
 
     # validate LLM call is rendered successfully
     bedrock_client.converse.assert_called_once_with(
-        modelId='us.anthropic.claude-3-5-sonnet-20241022-v2:0', 
+        modelId='us.anthropic.claude-3-5-haiku-20241022-v1:0', 
         messages=[{'role': 'user', 'content': [{'text': '<user_query>\nSample query text\n</user_query>\n\n\n<match_0>\nSample text0\n</match_0>\n\n\n<match_1>\nSample text1\n</match_1>\n\n\n<match_2>\nSample text2\n</match_2>\n\n\n<match_3>\nSample text3\n</match_3>\n\n\n<match_4>\nSample text4\n</match_4>\n\n'}]}], 
         system=[{'text': "\n        You're helping a developer to be more productive. You're given the developer query and a list of answers \n        found for the question on the internet. Given the most relevant matches, you need to provide a useful answer\n        to the user. You're answer MUST be a valid markdown. Put the valid markdown inside <markdown> XML tag and keep anything\n        else, including your thought outside of the XML tag. You're answer should not be very long. Keep it short and consise. \n        "}], 
         inferenceConfig={'temperature': 0.5}

@@ -23,10 +23,9 @@ jobs:
       # Run the tests (after dependencies are installed by SAM build)
       - name: Run tests
         run: |
-          cd .aws-sam/build
-          pip3 install pytest
-          python3 -m pytest -s -v
+          pip3 install -r src/requirements.txt
+          PYTHONPATH=src pytest test -vv
 
       # Deploy the stack if tests pass
       - name: Deploy with SAM
-        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --template-file template.yaml --stack-name CodeQuestStack
+        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name CodeQuestStack

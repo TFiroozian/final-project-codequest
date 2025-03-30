@@ -67,7 +67,7 @@ class EmbeddingService:
         })
         return response_body["embedding"]
 
-    def query_opensearch(self, query, k=1):
+    def query_opensearch(self, query: list[float], k: int=1):
         """
         Query Elasticsearch using the generated embedding with a KNN search.
 
