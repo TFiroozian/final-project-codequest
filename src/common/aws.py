@@ -19,7 +19,7 @@ def get_opensearch_client(opensearch_host: str, region: str):
     credentials = Session().get_credentials()
     auth = RequestsAWSV4SignerAuth(credentials, region, service)
 
-    # For local environment initialize the openSearch client without SSL and different host
+    # Local setup: connect to Docker container without SSL
     if os.getenv("AWS_SAM_LOCAL") == "true":
         return OpenSearch(
             hosts=[{"host": "opensearch-node", "port": 9200}],
@@ -30,6 +30,7 @@ def get_opensearch_client(opensearch_host: str, region: str):
             ssl_show_warn=False,
         )
 
+    # Cloud setup: use proper auth and secure connection
     return OpenSearch(
         hosts=[{"host": url.netloc, "port": url.port or 443}],
         http_auth=auth,
@@ -42,7 +43,9 @@ def get_opensearch_client(opensearch_host: str, region: str):
 
 def get_bedrock_client():
     """
-    Initialize and return a Bedrock client.
+    Initialize and return a Bedrock client which
+    is used to interact with Amazon Bedrock runtime APIs.
     """
+
     logger.info("Initializing Bedrock Client")
     return boto3.client(service_name="bedrock-runtime")

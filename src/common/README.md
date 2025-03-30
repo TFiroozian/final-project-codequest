@@ -1,4 +1,5 @@
-# Common Libraries
+# 🧩 Common Libraries
 
-This package contains all the common libraries used by Lambda functions. 
-The goal is to centralize shared code in this package to avoid duplication. 
+This package contains shared utility modules used across multiple Lambda functions.
+
+Its purpose is to centralize reusable logic—such as AWS client setup, embedding services, and OpenSearch integrations to avoid duplication and promote maintainability across the codebase.

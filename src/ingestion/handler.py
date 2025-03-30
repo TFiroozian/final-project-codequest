@@ -11,6 +11,13 @@ logger = Logger()
 
 
 class IngestionHandler:
+    """
+    Handles document ingestion into OpenSearch using embeddings.
+
+    Retrieves documents via a DataRetriever, generates embeddings,
+    and saves them to OpenSearch in batches.
+    """
+
     def __init__(
         self,
         embedding_svc: EmbeddingService,
@@ -20,6 +27,12 @@ class IngestionHandler:
         self._data_retriever = data_retriever
 
     def handle(self, event, *args, **kwargs):
+        """
+        Lambda handler for ingesting a specified number of documents.
+
+        :param event: dict containing 'number_of_records', 'batch_size', and 'records_offset'
+        :return: API-compatible response with the number of documents indexed
+        """
         logger.debug("Starting IngestionHandler")
         es_documents: list[tuple[str, list[float]]] = []
 
@@ -34,19 +47,22 @@ class IngestionHandler:
             logger.info(
                 f"Fetching and processing a barch of {limit} docs from {offset}"
             )
+            # Fetch next batch of StackOverflow rows
             data = self._data_retriever.get_dataframe(limit, offset)
             for _, row in data.iterrows():
                 question_title = row["question_title"]
                 question_body = row["question_body"]
                 accepted_answer = row["accepted_answer_body"]
 
+                # Combine fields into a single document for embedding
                 combined_text = f"Title: {question_title}\nBody: {question_body}\nAccepted Answer: {accepted_answer}"
 
-                # skip already indexed docs as generating model for them again only incurs extra costs
+                # Skip if already indexed (avoid duplicate work and model cost)
                 if self._embedding_svc.check_if_indexed(combined_text):
                     continue
 
                 try:
+                    # Generate embedding and queue for indexing
                     embedding = self._embedding_svc.generate_embedding(
                         text=combined_text
                     )
@@ -57,7 +73,7 @@ class IngestionHandler:
                     continue
             offset += limit
 
-            # flush collected documents so far
+            # Save batch to OpenSearch and clear buffer
             if es_documents:
                 logger.info(f"Flushing {len(es_documents)} documents to database!")
                 self._embedding_svc.save_to_opensearch(es_documents)

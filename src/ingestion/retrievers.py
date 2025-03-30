@@ -16,7 +16,8 @@ class StackOverflowDataRetriever:
 
     def __init__(self, bigquery_client: bigquery.Client):
         """
-        Initializes using BigQuery client
+        Initialize the retriever with an authenticated BigQuery client.
+        :param bigquery_client: Authenticated BigQuery client instance.
         """
         self._bigquery_client = bigquery_client
 
@@ -25,8 +26,11 @@ class StackOverflowDataRetriever:
         This function joins the posts_questions and posts_answers tables and retrieves the first number_of_records records of
         questions along with their corresponding accepted answers.
 
-        :return: A pandas DataFrame containing questions and their accepted answers.
+        :param number_of_records: Number of rows to return (default: 100)
+        :param offset: Optional offset for pagination
+        :return: pandas DataFrame with columns: question_title, question_body, accepted_answer_body
         """
+
         query = f"""\
 WITH accepted_answers AS (
     SELECT
@@ -56,6 +60,13 @@ LIMIT {number_of_records}\
 
     @staticmethod
     def _get_credentials():
+        """
+        Load Google Cloud service account credentials either from file or inlined secret.
+
+        :return: Credentials object for Google BigQuery client
+        :raises ValueError: If neither key path nor content is provided
+        """
+
         key_path = os.getenv("SERVICE_ACCOUNT_KEY_PATH")
         key_content = os.getenv("SERVICE_ACCOUNT_KEY")
         scopes = ["https://www.googleapis.com/auth/cloud-platform"]

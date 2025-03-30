@@ -32,9 +32,14 @@ class EmbeddingService:
         self._bedrock_client = bedrock_client
         self._index_name = index_name
         self._model_id = model_id
+        # Load embedding dimensions from env, fallback is 1024
         self._embedding_dimensions = os.environ.get("EMBEDDING_DIMENSIONS", 1024)
 
     def _create_if_not_exit(self):
+        """
+        Check if the OpenSearch index exists, and create it if it doesn't.
+        The created index uses a KNN vector field for storing and searching embeddings.
+        """
         if not self._opensearch_client.indices.exists(self._index_name):
             logger.info(f"Creating {self._index_name} index!")
             self._opensearch_client.indices.create(
@@ -70,6 +75,7 @@ class EmbeddingService:
             }
         )
 
+        # Call Bedrock model to generate embedding vector
         response = self._bedrock_client.invoke_model(
             body=payload,
             modelId=self._model_id,
@@ -95,21 +101,31 @@ class EmbeddingService:
 
         logger.info("Querying OpenSearch with a KNN search.")
 
+        # Return top-k documents based on vector similarity
         results = self._opensearch_client.search(
             index=self._index_name, body=search_query
         )
         return results["hits"]["hits"]
 
     def check_if_indexed(self, content: str) -> bool:
+        """
+        Check whether a given document (by text content) already exists in OpenSearch.
+
+        :param content: The full document content used to generate a unique hash-based ID.
+        :return: True if the document exists in the index, False otherwise.
+        """
         document_id = hashlib.sha256(content.encode()).hexdigest()
         return self._opensearch_client.exists(self._index_name, document_id)
 
     def save_to_opensearch(self, documents: Iterable[tuple[str, list[float]]]):
         """
         Index a batch of documents into OpenSearch.
-        :param documents: The list of documents that we're inserting into OpenSearch index.
+        :param documents: An iterable of (text, embedding) tuples to be indexed.
+                        The text is hashed into a document ID.
         """
         self._create_if_not_exit()
+
+        # Convert (text, vector) pairs into OpenSearch documents with hash-based IDs
         vectors = [
             {
                 "_index": self._index_name,

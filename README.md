@@ -1,64 +1,113 @@
-# CodeQuest
 
-Transforms natural language inputs into effective search strategies for code snippets.
+# 🧠 CodeQuest
 
-## Local Development Setup
-
-Follow these steps to set up and test the local development environment.
+**CodeQuest** transforms natural language queries into effective search strategies for code snippets using a vector database and LLM-based refinement.
 
 ---
 
-### 0. Run OpenSearch and Its UI in Docker
+## ⚙️ Local Development Setup
+
+Follow the steps below to build, run, and test the application locally using [AWS SAM](https://docs.aws.amazon.com/serverless-application-model/) and Docker.
+
+---
+
+### 0. Start OpenSearch and Dashboard UI with Docker
+
+Make sure Docker is installed and running. Then launch OpenSearch and its UI:
+
 ```bash
 docker-compose up -d
 ```
 
+---
+
 ### 1. Build the SAM Application
+
+Build the serverless app locally using the specified template:
+
 ```bash
 AWS_SAM_LOCAL=true sam build --template-file template.yaml --no-cached
 ```
 
-### 2. Invoke Ingestion Function
+---
 
-Note that docker-network codequest_codequest: Ensures the SAM container is on the same network as the Elasticsearch container for connectivity.
+### 2. Invoke Ingestion Function Locally
 
-```bash
-export SERVICE_ACCOUNT_KEY="$(cat ~/codequest-450416-c951cf254f32.json)"
-echo '{"number_of_records": 20, "batch_size": 10}' | AWS_SAM_LOCAL=true sam local invoke IngestionFunction --docker-network codequest_codequest --debug 
-```
+Ensure your Google Cloud service account key is available. This function indexes a sample set of documents in OpenSearch.
 
-### 3. Start Local API 
-This command uns the API locally on http://localhost:3000.
+> ℹ️ The `--docker-network codequest_codequest` flag ensures SAM runs in the same Docker network as OpenSearch.
 
 ```bash
-AWS_SAM_LOCAL=true sam local start-api --docker-network codequest_codequest --debug
+export SERVICE_ACCOUNT_KEY="$(cat ~/codequest-service-account.json)"
+echo '{"number_of_records": 20, "batch_size": 10}' | \
+AWS_SAM_LOCAL=true sam local invoke IngestionFunction \
+--docker-network codequest_codequest --debug
 ```
 
-### 4. Test the API
+---
+
+### 3. Start the Local API Gateway
+
+This runs your API locally at: `http://localhost:3000`
+
 ```bash
-curl http://localhost:3000/code/search?query=How%20to%20query%20in%20bigquery%20and%20store%20results%20in%20Elasticsearch\?
+AWS_SAM_LOCAL=true sam local start-api \
+--docker-network codequest_codequest --debug
 ```
 
-### 5. Invoke Query Function 
+---
 
-Alternativly we can invoke the query function via the sam CLI and the events defined in the events/events.json
+### 4. Test the Search API
+
+You can test the API using `curl`:
 
 ```bash
-sam local invoke QueryFunction --event events/event.json --debug --docker-network codequest_codequest
+curl "http://localhost:3000/code/search?query=How%20to%20query%20in%20bigquery%20and%20store%20results%20in%20Elasticsearch?"
 ```
 
-### 6. Deploy the Lambda Functions to AWS Cloud
+---
 
-Note that you need to add AWS credentials to your local environment. This command is only used for the inital test and setup 
-Future deployments will be through CI/CD pipelines in Github Actions. 
+### 5. Invoke Query Function Manually
+
+Optionally, invoke the Query function directly using a sample event payload:
+
+```bash
+sam local invoke QueryFunction \
+--event events/event.json --debug \
+--docker-network codequest_codequest
+```
+
+---
+
+### 6. Deploy to AWS Cloud
+
+For initial deployment only — you must have AWS credentials configured locally.
+
+> ✅ Future deployments will be handled by CI/CD (see `.github/workflows/` for GitHub Actions setup).
 
 ```bash
 sam deploy --stack-name CodeQuestStack \
            --capabilities CAPABILITY_IAM
 ```
 
+---
 
-### 7. Run Unit Tests Locally
+### 7. Run Unit Tests
+
+Make sure you're in the correct Python virtual environment, then run:
+
 ```bash
 python3 -m pytest -s -v
 ```
+
+---
+
+## ✅ Requirements
+
+- Docker  
+- AWS CLI + SAM CLI  
+- Python 3.8+  
+- Google Cloud service account (for BigQuery access)  
+- VSCode (for plugin development, optional)
+
+---
