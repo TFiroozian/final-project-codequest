@@ -8,7 +8,7 @@ Follow these steps to set up and test the local development environment.
 
 ---
 
-### 0. Run ElasticSearch and Kibana in Docker 
+### 0. Run OpenSearch and Its UI in Docker
 ```bash
 docker-compose up -d
 ```
@@ -23,15 +23,15 @@ AWS_SAM_LOCAL=true sam build --template-file template.yaml --no-cached
 Note that docker-network codequest_codequest: Ensures the SAM container is on the same network as the Elasticsearch container for connectivity.
 
 ```bash
-sam local invoke IngestionFunction --docker-network codequest_codequest --debug
+export SERVICE_ACCOUNT_KEY="$(cat ~/codequest-450416-c951cf254f32.json)"
+echo '{"number_of_records": 20, "batch_size": 10}' | AWS_SAM_LOCAL=true sam local invoke IngestionFunction --docker-network codequest_codequest --debug 
 ```
-
 
 ### 3. Start Local API 
 This command uns the API locally on http://localhost:3000.
 
 ```bash
-sam local start-api --docker-network codequest_codequest --debug
+AWS_SAM_LOCAL=true sam local start-api --docker-network codequest_codequest --debug
 ```
 
 ### 4. Test the API

@@ -20,6 +20,7 @@ api_key = None
 if os.getenv("AWS_SAM_LOCAL") != "true":
     api_key = os.getenv("API_KEY")
 
+
 def lambda_handler(event, context):
     """
     AWS Lambda entry point. Expects 'query' in the event payload to run the search.
@@ -29,7 +30,9 @@ def lambda_handler(event, context):
     }
     """
     try:
-        return QueryHandler(embedding_svc, bedrock_client, api_key).handle(event, context)
+        return QueryHandler(embedding_svc, bedrock_client, api_key).handle(
+            event, context
+        )
     except Exception as e:
         logger.exception("Unexpected Error", e)
         return {

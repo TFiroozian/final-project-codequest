@@ -11,13 +11,19 @@ logger = Logger()
 
 
 class EmbeddingService:
-    """A class the provides a method to generate embeddings, and queries Elasticsearch using those embeddings."""
+    """A class the provides a method to generate embeddings, and queries OpenSearch using those embeddings."""
 
-    def __init__(self, opensearch_client: OpenSearch, bedrock_client, index_name: str, model_id: str):
+    def __init__(
+        self,
+        opensearch_client: OpenSearch,
+        bedrock_client,
+        index_name: str,
+        model_id: str,
+    ):
         """
-        :param es_client: The ElasticSearch client, used to query Elasticsearch
+        :param opensearch_client: The OpenSearch client
         :param bedrock_client: The Amazon Bedrock client, used to fetch embeddings
-        :param index_name: The name of the Elasticsearch index to query.
+        :param index_name: The name of the OpenSearch index to query.
         :param model_id: The ID of the Amazon model that is used to generate embeddings.
         """
         logger.info("Initializing EmbeddingService...")
@@ -37,7 +43,10 @@ class EmbeddingService:
                     "settings": {"index.knn": True},
                     "mappings": {
                         "properties": {
-                            "embedding": {"type": "knn_vector", "dimension": self._embedding_dimensions},
+                            "embedding": {
+                                "type": "knn_vector",
+                                "dimension": self._embedding_dimensions,
+                            },
                         }
                     },
                 },
@@ -53,7 +62,13 @@ class EmbeddingService:
         logger.debug(f"Generating embeddings with {self._model_id} model.")
 
         content_type = accept = "application/json"
-        payload = json.dumps({"inputText": text, "dimensions": self._embedding_dimensions, "normalize": True})
+        payload = json.dumps(
+            {
+                "inputText": text,
+                "dimensions": self._embedding_dimensions,
+                "normalize": True,
+            }
+        )
 
         response = self._bedrock_client.invoke_model(
             body=payload,
@@ -62,61 +77,51 @@ class EmbeddingService:
             contentType=content_type,
         )
         response_body = json.loads(response.get("body").read())
-        logger.debug("Generated embedding", extra={
-            "embedding": response_body
-        })
+        logger.debug("Generated embedding", extra={"embedding": response_body})
         return response_body["embedding"]
 
-    def query_opensearch(self, query: list[float], k: int=1):
+    def query_opensearch(self, query: list[float], k: int = 1):
         """
-        Query Elasticsearch using the generated embedding with a KNN search.
+        Query OpenSearch using the generated embedding with a KNN search.
 
         :param query_embedding: The embedding (list/array) to use as the query vector.
         :param k: Number of similar documents to retrieve.
-        :return: The Elasticsearch search response.
+        :return: The OpenSearch search response.
         """
 
         self._create_if_not_exit()
 
-        search_query = {
-            "query": {
-                "knn": {
-                    "embedding": {
-                        "vector": query, 
-                        "k": k
-                    }
-                }
-            }
-        }
+        search_query = {"query": {"knn": {"embedding": {"vector": query, "k": k}}}}
 
-        logger.info("Querying Elasticsearch with a KNN search.")
+        logger.info("Querying OpenSearch with a KNN search.")
 
-        results = self._opensearch_client.search(index=self._index_name, body=search_query)
+        results = self._opensearch_client.search(
+            index=self._index_name, body=search_query
+        )
         return results["hits"]["hits"]
-
 
     def check_if_indexed(self, content: str) -> bool:
         document_id = hashlib.sha256(content.encode()).hexdigest()
         return self._opensearch_client.exists(self._index_name, document_id)
 
-
     def save_to_opensearch(self, documents: Iterable[tuple[str, list[float]]]):
         """
-        Index a batch of documents into Elasticsearch.
-        :param documents: The list of documents that we're inserting into ES index.
+        Index a batch of documents into OpenSearch.
+        :param documents: The list of documents that we're inserting into OpenSearch index.
         """
         self._create_if_not_exit()
         vectors = [
-
             {
-            "_index": self._index_name,
-            "_id": hashlib.sha256(text.encode()).hexdigest(),
-            "embedding": vector,
-            "text": text,
-        } for text, vector in documents]
+                "_index": self._index_name,
+                "_id": hashlib.sha256(text.encode()).hexdigest(),
+                "embedding": vector,
+                "text": text,
+            }
+            for text, vector in documents
+        ]
         logger.info(f"Indexing {len(vectors)} documents into OpenSearch...")
 
         helpers.bulk(self._opensearch_client, vectors)
         self._opensearch_client.indices.refresh(index=self._index_name)
 
-        logger.info("Documents saved to Elasticsearch successfully.")
+        logger.info("Documents saved to OpenSearch successfully.")

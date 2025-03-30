@@ -16,8 +16,7 @@ logger = Logger()
 try:
     credentials = StackOverflowDataRetriever._get_credentials()
     bigquery_client = bigquery.Client(
-        credentials=credentials,
-        project=credentials.project_id
+        credentials=credentials, project=credentials.project_id
     )
     embedding_svc, _ = initialize_services()
     data_retriever = StackOverflowDataRetriever(bigquery_client)
@@ -40,4 +39,4 @@ def lambda_handler(event, context):
 
 
 if __name__ == "__main__":
-    ingestion_handler.handle() 
+    ingestion_handler.handle()

@@ -8,13 +8,16 @@ from ingestion.retrievers import StackOverflowDataRetriever
 def bigquery_client():
     return MagicMock()
 
+
 @pytest.fixture
 def stackoverflow_retriever(bigquery_client):
     return StackOverflowDataRetriever(bigquery_client)
 
+
 def test_get_dataframe(bigquery_client, stackoverflow_retriever):
     stackoverflow_retriever.get_dataframe(50)
-    bigquery_client.query.assert_called_once_with(f"""\
+    bigquery_client.query.assert_called_once_with(
+        f"""\
 WITH accepted_answers AS (
     SELECT
         q.id AS question_id,
@@ -33,11 +36,14 @@ WITH accepted_answers AS (
 )
 SELECT * FROM accepted_answers
 LIMIT 50\
-""")
+"""
+    )
+
 
 def test_get_dataframe_with_offset(bigquery_client, stackoverflow_retriever):
     stackoverflow_retriever.get_dataframe(50, 10)
-    bigquery_client.query.assert_called_once_with(f"""\
+    bigquery_client.query.assert_called_once_with(
+        f"""\
 WITH accepted_answers AS (
     SELECT
         q.id AS question_id,
@@ -57,4 +63,5 @@ WITH accepted_answers AS (
 SELECT * FROM accepted_answers
 LIMIT 50
 OFFSET 10\
-""")
+"""
+    )

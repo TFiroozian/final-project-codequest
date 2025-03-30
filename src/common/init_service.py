@@ -9,7 +9,7 @@ def initialize_services() -> EmbeddingService:
 
     This function is invoked once when the Lambda starts. It performs the following tasks:
     - Exports secrets to environment variables.
-    - Establishes a connection to Elasticsearch using the provided ES_HOST.
+    - Establishes a connection to OpenSearch using the provided OPENSEARCH_HOST.
     - Initializes the Bedrock client.
     - Creates an instance of the EmbeddingService with the configured clients and environment variables.
 

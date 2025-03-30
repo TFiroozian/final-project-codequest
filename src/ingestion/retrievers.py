@@ -56,9 +56,9 @@ LIMIT {number_of_records}\
 
     @staticmethod
     def _get_credentials():
-        key_path = os.getenv("SERVICE_ACCOUNT_KEY_PATH") 
-        key_content = os.getenv("SERVICE_ACCOUNT_KEY")  
-        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        key_path = os.getenv("SERVICE_ACCOUNT_KEY_PATH")
+        key_content = os.getenv("SERVICE_ACCOUNT_KEY")
+        scopes = ["https://www.googleapis.com/auth/cloud-platform"]
         if key_path:
             return service_account.Credentials.from_service_account_file(
                 key_path,
@@ -70,5 +70,4 @@ LIMIT {number_of_records}\
                 scopes=scopes,
             )
         else:
-            raise ValueError("Service account credentials unavailable") 
-
+            raise ValueError("Service account credentials unavailable")
