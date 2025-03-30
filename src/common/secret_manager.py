@@ -2,10 +2,10 @@ import os
 import json
 import boto3
 from dotenv import load_dotenv
-import logging
 
+from aws_lambda_powertools import Logger
 
-logger = logging.getLogger()
+logger = Logger()
 
 
 def export_secrets_to_env(secret_name: str = None):

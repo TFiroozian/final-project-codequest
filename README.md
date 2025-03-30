@@ -53,8 +53,7 @@ Note that you need to add AWS credentials to your local environment. This comman
 Future deployments will be through CI/CD pipelines in Github Actions. 
 
 ```bash
-sam deploy --template-file template.yaml \                                                                     
-           --stack-name CodeQuestStack \
+sam deploy --stack-name CodeQuestStack \
            --capabilities CAPABILITY_IAM
 ```
 

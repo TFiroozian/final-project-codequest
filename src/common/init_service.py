@@ -1,5 +1,5 @@
 import os
-from common.aws import get_bedrock_client, get_es_client
+from common.aws import get_bedrock_client, get_opensearch_client
 from common.embeddings import EmbeddingService
 from common.secret_manager import export_secrets_to_env
 
@@ -21,13 +21,16 @@ def initialize_services() -> EmbeddingService:
     export_secrets_to_env()
 
     # TODO: read the default value from .env
-    es_client = get_es_client(es_host=os.environ.get("ES_HOST") or "http://elasticsearch:9200")
+    opensearch_client = get_opensearch_client(
+        opensearch_host=os.environ.get("OPENSEARCH_HOST") or "http://opensearch:9200",
+        region=os.getenv("AWS_REGION", "us-east-1")
+    )
     bedrock_client = get_bedrock_client()
 
     embedding_svc = EmbeddingService(
-        es_client=es_client,
+        opensearch_client=opensearch_client,
         bedrock_client=bedrock_client,
-        index_name=os.environ.get("ES_INDEX_NAME"),
+        index_name=os.environ.get("OPENSEARCH_INDEX_NAME"),
         model_id=os.environ.get("BEDROCK_MODEL_ID"),
     )
 

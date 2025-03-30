@@ -1,11 +1,12 @@
 import json
-import logging
 import os
 from google.cloud import bigquery
 from google.oauth2 import service_account
 
 
-logger = logging.getLogger()
+from aws_lambda_powertools import Logger
+
+logger = Logger()
 
 
 class StackOverflowDataRetriever:
@@ -19,7 +20,7 @@ class StackOverflowDataRetriever:
         """
         credentials = StackOverflowDataRetriever._get_credentials()
         self.client = bigquery.Client(
-            client_options=credentials,
+            credentials=credentials,
             project=credentials.project_id
         )
 
@@ -58,7 +59,7 @@ class StackOverflowDataRetriever:
     def _get_credentials():
         key_path = os.getenv("SERVICE_ACCOUNT_KEY_PATH") 
         key_content = os.getenv("SERVICE_ACCOUNT_KEY")  
-        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
         if key_path:
             return service_account.Credentials.from_service_account_file(
                 key_path,

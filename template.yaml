@@ -11,46 +11,35 @@ Globals:
     VpcConfig:
       # Copied this value from AWS conseol - these the sg ids of the default vpc 
       SecurityGroupIds:
-        - sg-0ca13e71d995466fd
+        - sg-0b227ce014f4ad669
       SubnetIds:
         # TODO: the default AWS VPC only had public subnets so I deployed the Lambda in the public subnet 
         # As an improvement for the final submission make the subnets private and add a natgateway to VPC
-        - subnet-0d103b1e487c6ef4a
-        - subnet-06bf4990ff285a0ab
-        - subnet-098b1c52033c9302c
+        - subnet-0e11865559c05c6a0
 
     # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel.
     # Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:
       LogFormat: JSON
+      ApplicationLogLevel: DEBUG 
+      SystemLogLevel: INFO 
+
 
 Resources:
-  CommonLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: CommonLayer
-      CompatibleRuntimes:
-        - python3.12
-      ContentUri: common_layer/
-    Metadata:
-      BuildMethod: makefile
-
   QueryFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lambda_functions/query
-      Handler: app.lambda_handler
-      Runtime: python3.12
-      # TODO: can we reduce timeout? 
+      PackageType: Image
+      Architectures:
+        - x86_64
       Timeout: 20
-      Layers:
-        - !Ref CommonLayer
       Environment:
         Variables:
-          ES_HOST: !Join [ "", [ "https://", !ImportValue OpensearchEndpointURL, ":443"  ] ] 
-          # ES_INDEX_NAME: codequest-embedding
-          ES_INDEX_NAME: "code-snippets-embeddings"
+          OPENSEARCH_HOST: !Join [ "", [ "https://", !ImportValue OpensearchDBEndpointURL ] ] 
+          OPENSEARCH_INDEX_NAME: "code-snippets-embeddings"
           BEDROCK_MODEL_ID: amazon.titan-embed-text-v2:0
+          POWERTOOLS_SERVICE_NAME: QueryFunction
+          POWERTOOLS_LOG_LEVEL: DEBUG
       Architectures:
       - x86_64
       Events:
@@ -59,24 +48,36 @@ Resources:
           Properties:
             Path: /code/search
             Method: get
+    Metadata:
+      Dockerfile: query/Dockerfile
+      DockerContext: ./src
+      DockerTag: python3.12-v1
+
 
   # This job will be called manually / ad-hoc
   IngestionFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lambda_functions/ingestion/
-      Handler: app.lambda_handler
-      Runtime: python3.12
+      PackageType: Image
+      Architectures:
+        - x86_64
+      ImageConfig:
+        Command:
+          - ingestion.app.lambda_handler 
       Timeout: 300
-      Layers:
-        - !Ref CommonLayer
       Environment:
         Variables:
-          ES_HOST: !Join [ "", [ "https://", !ImportValue OpensearchEndpointURL, ":443"  ] ] 
-          # ES_INDEX_NAME: codequest-embedding
-          ES_INDEX_NAME: "code-snippets-embeddings"
+          OPENSEARCH_HOST: !Join [ "", [ "https://", !ImportValue OpensearchDBEndpointURL ] ] 
+          OPENSEARCH_INDEX_NAME: "code-snippets-embeddings"
           BEDROCK_MODEL_ID: amazon.titan-embed-text-v2:0
-          SERVICE_ACCOUNT_KEY: '{{resolve:secretsmanager:GCloudServiceAccountKeyABF9-VqAXFmhkQpYI}}'
+          SERVICE_ACCOUNT_KEY: '{{resolve:secretsmanager:GCloudServiceAccountKeyABF9-QajhxE1lrMDk}}'
+          POWERTOOLS_SERVICE_NAME: QueryFunction
+          POWERTOOLS_LOG_LEVEL: DEBUG
+    Metadata:
+      Dockerfile: ingestion/Dockerfile
+      DockerContext: ./src
+      DockerTag: python3.12-v1
+
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

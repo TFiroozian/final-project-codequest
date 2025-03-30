@@ -1,7 +1,5 @@
 import json
 from unittest.mock import MagicMock
-
-
 import pytest
 
 from .handler import QueryHandler
