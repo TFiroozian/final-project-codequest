@@ -34,4 +34,4 @@ def initialize_services() -> EmbeddingService:
         model_id=os.environ.get("BEDROCK_MODEL_ID"),
     )
 
-    return embedding_svc
+    return embedding_svc, bedrock_client

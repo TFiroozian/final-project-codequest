@@ -59,11 +59,11 @@ class codeQuestInfraStack(Stack):
 
         ingestion_role = Role.from_role_arn(self, "IngestionRole", Fn.import_value("IngestionFunctionIamRole"))
         opensearch_cluster.grant_write(ingestion_role)
-        self.allow_embedding_call(ingestion_role, "IngestionRole")
+        self.allow_bedrock_call(ingestion_role, "IngestionRole")
 
         query_role = Role.from_role_arn(self, "QueryRole", Fn.import_value("QueryFunctionIamRole"))
         opensearch_cluster.grant_read(query_role)
-        self.allow_embedding_call(query_role, "QueryRole")
+        self.allow_bedrock_call(query_role, "QueryRole")
 
         tara_user = User.from_user_arn(self, "TaraUser", tara_user_arn)
         opensearch_cluster.grant_read_write(tara_user)
@@ -75,14 +75,14 @@ class codeQuestInfraStack(Stack):
         CfnOutput(self, "OpensearchDBEndpoint", value=opensearch_cluster.domain_endpoint, export_name="OpensearchDBEndpointURL")
 
     
-    def allow_embedding_call(self, role: IRole, role_name: str):
+    def allow_bedrock_call(self, role: IRole, role_name: str):
         role.attach_inline_policy(Policy(
             self,
             f"Allow{role_name}ToCallTitan",
             document=PolicyDocument(
                 statements=[PolicyStatement(
                     actions=["bedrock:InvokeModel"],
-                    resources=["arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0"],
+                    resources=["*"],
                     effect=Effect.ALLOW
                 )]
             )

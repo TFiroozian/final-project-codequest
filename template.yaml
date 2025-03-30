@@ -21,7 +21,7 @@ Globals:
     # Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:
       LogFormat: JSON
-      ApplicationLogLevel: DEBUG 
+      ApplicationLogLevel: INFO 
       SystemLogLevel: INFO 
 
 
@@ -32,14 +32,14 @@ Resources:
       PackageType: Image
       Architectures:
         - x86_64
-      Timeout: 20
+      Timeout: 60
       Environment:
         Variables:
           OPENSEARCH_HOST: !Join [ "", [ "https://", !ImportValue OpensearchDBEndpointURL ] ] 
           OPENSEARCH_INDEX_NAME: "code-snippets-embeddings"
           BEDROCK_MODEL_ID: amazon.titan-embed-text-v2:0
           POWERTOOLS_SERVICE_NAME: QueryFunction
-          POWERTOOLS_LOG_LEVEL: DEBUG
+          POWERTOOLS_LOG_LEVEL: INFO 
       Architectures:
       - x86_64
       Events:
@@ -64,7 +64,7 @@ Resources:
       ImageConfig:
         Command:
           - ingestion.app.lambda_handler 
-      Timeout: 300
+      Timeout: 900
       Environment:
         Variables:
           OPENSEARCH_HOST: !Join [ "", [ "https://", !ImportValue OpensearchDBEndpointURL ] ] 
@@ -72,7 +72,7 @@ Resources:
           BEDROCK_MODEL_ID: amazon.titan-embed-text-v2:0
           SERVICE_ACCOUNT_KEY: '{{resolve:secretsmanager:GCloudServiceAccountKeyABF9-QajhxE1lrMDk}}'
           POWERTOOLS_SERVICE_NAME: QueryFunction
-          POWERTOOLS_LOG_LEVEL: DEBUG
+          POWERTOOLS_LOG_LEVEL: INFO 
     Metadata:
       Dockerfile: ingestion/Dockerfile
       DockerContext: ./src

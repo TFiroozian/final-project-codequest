@@ -11,7 +11,7 @@ from aws_lambda_powertools import Logger
 logger = Logger()
 
 try:
-    embedding_svc = initialize_services()
+    embedding_svc, _ = initialize_services()
     data_retriever = StackOverflowDataRetriever()
     ingestion_handler = IngestionHandler(embedding_svc, data_retriever)
 except Exception as e:

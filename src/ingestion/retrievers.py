@@ -24,7 +24,7 @@ class StackOverflowDataRetriever:
             project=credentials.project_id
         )
 
-    def get_dataframe(self, number_of_records: int = 100):
+    def get_dataframe(self, number_of_records: int = 100, offset: int | None = None):
         """
         This function joins the posts_questions and posts_answers tables and retrieves the first number_of_records records of
         questions along with their corresponding accepted answers.
@@ -51,6 +51,9 @@ class StackOverflowDataRetriever:
             SELECT * FROM accepted_answers
             LIMIT {number_of_records}
         """
+        if offset:
+            query += f"\nOFFSET {offset}"
+
         query_job = self.client.query(query)
         result_df = query_job.to_dataframe()
         return result_df

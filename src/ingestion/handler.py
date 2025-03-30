@@ -23,25 +23,45 @@ class IngestionHandler:
         logger.debug("Starting IngestionHandler")
         es_documents: list[tuple[str, list[float]]] = []
 
-        number_of_records = int(event.get("number_of_records", "100"))
-        data = self._data_retriever.get_dataframe(number_of_records)
-        for _, row in data.iterrows():
-            question_title = row["question_title"]
-            question_body = row["question_body"]
-            accepted_answer = row["accepted_answer_body"]
+        number_of_records = int(event.get("number_of_records", "1000"))
+        offset = int(event.get("records_offset", "0"))
+        batch_size = int(event.get("batch_size", "100"))
 
-            combined_text = f"Title: {question_title}\nBody: {question_body}\nAccepted Answer: {accepted_answer}"
-            try:
-                embedding = self._embedding_svc.generate_embedding(text=combined_text)
+        limit = batch_size
+        total_indexed = 0
 
-                # Create Elasticsearch document
-                es_documents.append((combined_text, embedding))
-            except ClientError as e:
-                logger.error(f"Error generating embedding", extra={"error": e})
-                continue
+        # this causes indexing between number_of_records and 2*number_of_records-1, skipping over already indexed docs 
+        while total_indexed < number_of_records:
+            logger.info(f"Fetching and processing a barch of {limit} docs from {offset}")
+            data = self._data_retriever.get_dataframe(limit, offset)
+            for _, row in data.iterrows():
+                question_title = row["question_title"]
+                question_body = row["question_body"]
+                accepted_answer = row["accepted_answer_body"]
 
-        # Save documents to Elasticsearch
-        self._embedding_svc.save_to_opensearch(es_documents)
+                combined_text = f"Title: {question_title}\nBody: {question_body}\nAccepted Answer: {accepted_answer}"
+
+                # skip already indexed docs as generating model for them again only incurs extra costs
+                if self._embedding_svc.check_if_indexed(combined_text):
+                    continue
+
+                try:
+                    embedding = self._embedding_svc.generate_embedding(text=combined_text)
+                    es_documents.append((combined_text, embedding))
+                    total_indexed += 1
+                except ClientError as e:
+                    logger.error(f"Error generating embedding", extra={"error": e})
+                    continue
+            offset += limit
+
+            # flush collected documents so far 
+            if es_documents:
+                logger.info(f"Flushing {len(es_documents)} documents to database!")
+                self._embedding_svc.save_to_opensearch(es_documents)
+                es_documents.clear()
+            
+            logger.info(f"{total_indexed} documents are indexed so far!")
+
         logger.info(f"Processed and saved {len(es_documents)} documents to Elasticsearch.")
         return {"statusCode": 200, "body": json.dumps({"results": len(es_documents)})}
 

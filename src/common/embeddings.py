@@ -50,7 +50,7 @@ class EmbeddingService:
         :param text: The text to generate embedding for.
         :return: A list (or vector) of embeddings
         """
-        logger.info(f"Generating embeddings with {self._model_id} model.")
+        logger.debug(f"Generating embeddings with {self._model_id} model.")
 
         content_type = accept = "application/json"
         payload = json.dumps({"inputText": text, "dimensions": self._embedding_dimensions, "normalize": True})
@@ -93,6 +93,11 @@ class EmbeddingService:
 
         results = self._opensearch_client.search(index=self._index_name, body=search_query)
         return results["hits"]["hits"]
+
+
+    def check_if_indexed(self, content: str) -> bool:
+        document_id = hashlib.sha256(content.encode()).hexdigest()
+        return self._opensearch_client.exists(self._index_name, document_id)
 
 
     def save_to_opensearch(self, documents: Iterable[tuple[str, list[float]]]):
