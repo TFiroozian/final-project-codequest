@@ -22,8 +22,8 @@ def initialize_services() -> EmbeddingService:
 
     # TODO: read the default value from .env
     opensearch_client = get_opensearch_client(
-        opensearch_host=os.environ.get("OPENSEARCH_HOST") or "http://opensearch:9200",
-        region=os.getenv("AWS_REGION", "us-east-1")
+        opensearch_host=os.environ.get("OPENSEARCH_HOST"),
+        region=os.getenv("AWS_REGION", "us-east-1"),
     )
     bedrock_client = get_bedrock_client()
 

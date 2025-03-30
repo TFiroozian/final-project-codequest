@@ -1,3 +1,4 @@
+import os
 from urllib.parse import urlparse
 import boto3
 import logging
@@ -17,6 +18,17 @@ def get_opensearch_client(opensearch_host: str, region: str):
     service = "es"
     credentials = Session().get_credentials()
     auth = RequestsAWSV4SignerAuth(credentials, region, service)
+
+    if os.getenv("AWS_SAM_LOCAL") == "true":
+        logger.info(f"Fuck this shit {os.getenv("AWS_SAM_LOCAL") }")
+        return OpenSearch(
+            hosts=[{"host": "opensearch-node", "port": 9200}],
+            http_compress=True,
+            use_ssl=False,
+            verify_certs=False,
+            ssl_assert_hostname=False,
+            ssl_show_warn=False,
+        )
 
     return OpenSearch(
         hosts=[{"host": url.netloc, "port": url.port or 443}],
