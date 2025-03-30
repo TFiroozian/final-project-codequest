@@ -28,4 +28,4 @@ jobs:
 
       # Deploy the stack if tests pass
       - name: Deploy with SAM
-        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name CodeQuestStack
+        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
