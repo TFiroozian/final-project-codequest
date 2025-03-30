@@ -30,7 +30,6 @@ class IngestionHandler:
         limit = batch_size
         total_indexed = 0
 
-        # this causes indexing between number_of_records and 2*number_of_records-1, skipping over already indexed docs 
         while total_indexed < number_of_records:
             logger.info(f"Fetching and processing a barch of {limit} docs from {offset}")
             data = self._data_retriever.get_dataframe(limit, offset)
@@ -58,10 +57,10 @@ class IngestionHandler:
             if es_documents:
                 logger.info(f"Flushing {len(es_documents)} documents to database!")
                 self._embedding_svc.save_to_opensearch(es_documents)
-                es_documents.clear()
+                es_documents = []
             
             logger.info(f"{total_indexed} documents are indexed so far!")
 
         logger.info(f"Processed and saved {len(es_documents)} documents to Elasticsearch.")
-        return {"statusCode": 200, "body": json.dumps({"results": len(es_documents)})}
+        return {"statusCode": 200, "body": json.dumps({"results": total_indexed})}
 

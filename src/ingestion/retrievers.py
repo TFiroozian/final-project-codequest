@@ -14,15 +14,11 @@ class StackOverflowDataRetriever:
     A class to fetch Stack Overflow data from the bigquery-public-data.stackoverflow dataset.
     """
 
-    def __init__(self):
+    def __init__(self, bigquery_client: bigquery.Client):
         """
-        Initializes the BigQuery client using the specified Google Cloud project ID.
+        Initializes using BigQuery client
         """
-        credentials = StackOverflowDataRetriever._get_credentials()
-        self.client = bigquery.Client(
-            credentials=credentials,
-            project=credentials.project_id
-        )
+        self._bigquery_client = bigquery_client
 
     def get_dataframe(self, number_of_records: int = 100, offset: int | None = None):
         """
@@ -31,30 +27,30 @@ class StackOverflowDataRetriever:
 
         :return: A pandas DataFrame containing questions and their accepted answers.
         """
-        query = f"""
-            WITH accepted_answers AS (
-                SELECT
-                    q.id AS question_id,
-                    q.title AS question_title,
-                    q.body AS question_body,
-                    q.accepted_answer_id,
-                    a.body AS accepted_answer_body
-                FROM
-                    `bigquery-public-data.stackoverflow.posts_questions` q
-                LEFT JOIN
-                    `bigquery-public-data.stackoverflow.posts_answers` a
-                ON
-                    q.accepted_answer_id = a.id
-                WHERE
-                    q.accepted_answer_id IS NOT NULL
-            )
-            SELECT * FROM accepted_answers
-            LIMIT {number_of_records}
-        """
+        query = f"""\
+WITH accepted_answers AS (
+    SELECT
+        q.id AS question_id,
+        q.title AS question_title,
+        q.body AS question_body,
+        q.accepted_answer_id,
+        a.body AS accepted_answer_body
+    FROM
+        `bigquery-public-data.stackoverflow.posts_questions` q
+    LEFT JOIN
+        `bigquery-public-data.stackoverflow.posts_answers` a
+    ON
+        q.accepted_answer_id = a.id
+    WHERE
+        q.accepted_answer_id IS NOT NULL
+)
+SELECT * FROM accepted_answers
+LIMIT {number_of_records}\
+"""
         if offset:
             query += f"\nOFFSET {offset}"
 
-        query_job = self.client.query(query)
+        query_job = self._bigquery_client.query(query)
         result_df = query_job.to_dataframe()
         return result_df
 

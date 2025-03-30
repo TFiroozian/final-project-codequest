@@ -105,7 +105,7 @@ class QueryHandler:
             matches = [hit["_source"].get("text", "") for hit in hits]
             rendered_response = self._render_response(query_text, matches)
 
-            return {"statusCode": 200, "body": rendered_response}
+            return {"statusCode": 200, "body": json.dumps({"markdown": rendered_response})}
 
         except Exception as e:
             logger.error("Error querying Opensearch: %s", e, exc_info=True)
