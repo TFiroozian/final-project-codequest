@@ -72,6 +72,9 @@ class codeQuestInfraStack(Stack):
         gcloud_key.grant_read(ingestion_role)
         gcloud_key.grant_read(tara_user)
 
+        api_key = secretsmanager.Secret(self, 'APIKey')
+        api_key.grant_read(query_role)
+
         CfnOutput(self, "OpensearchDBEndpoint", value=opensearch_cluster.domain_endpoint, export_name="OpensearchDBEndpointURL")
 
     

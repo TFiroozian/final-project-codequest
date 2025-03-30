@@ -36,6 +36,7 @@ Resources:
       Environment:
         Variables:
           OPENSEARCH_HOST: !Join [ "", [ "https://", !ImportValue OpensearchDBEndpointURL ] ] 
+          API_KEY: '{{resolve:secretsmanager:APIKeyF5CDB6B6-xdQDdD707EsP}}'
           OPENSEARCH_INDEX_NAME: "code-snippets-embeddings"
           BEDROCK_MODEL_ID: amazon.titan-embed-text-v2:0
           POWERTOOLS_SERVICE_NAME: QueryFunction
@@ -48,6 +49,7 @@ Resources:
           Properties:
             Path: /code/search
             Method: get
+            TimeoutInMillis: 29000
     Metadata:
       Dockerfile: query/Dockerfile
       DockerContext: ./src

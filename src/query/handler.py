@@ -1,4 +1,5 @@
 import json
+import os
 from aws_lambda_powertools import Logger
 
 from common.embeddings import EmbeddingService
@@ -6,9 +7,10 @@ from common.embeddings import EmbeddingService
 logger = Logger()
 
 class QueryHandler:
-    def __init__(self, embedding_svc: EmbeddingService, bedrock_client):
+    def __init__(self, embedding_svc: EmbeddingService, bedrock_client, api_key: str | None = None):
         self._embedding_svc = embedding_svc
         self._bedrock_client = bedrock_client
+        self._api_key = api_key
 
 
     def _render_response(self, query: str, matched_docs: list[str]) -> str:
@@ -44,13 +46,13 @@ class QueryHandler:
         system_prompts = [{"text": system_prompt}]
 
         converse_args = {
-            "modelId": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+            "modelId": "us.anthropic.claude-3-5-haiku-20241022-v1:0",
             "messages": messages,
             "system": system_prompts,
             "inferenceConfig": inference_config,
         }
 
-        logger.info("Calling sonnet3.5 v2 to summarize findings", extra=converse_args)
+        logger.info("Calling Haiku3.5 to summarize findings", extra=converse_args)
         response = self._bedrock_client.converse(**converse_args)
 
         output_message = response['output']['message']
@@ -64,7 +66,7 @@ class QueryHandler:
     
 
     def handle(self, event, context):
-        logger.debug("Starting QueryHandler. Event received: %s", event)
+        logger.info("Starting QueryHandler. Event received: %s", event)
 
         # Extract the user query from the event
         query_params = event.get("queryStringParameters") or {}
@@ -74,6 +76,12 @@ class QueryHandler:
             return {
                 "statusCode": 400,
                 "body": json.dumps({"error": "No query text provided in event."}),
+            }
+
+        if self._api_key and event.get("headers", {}).get("api_key") != self._api_key:
+            return {
+                "statusCode": 401,
+                "body": json.dumps({"error": "Unauthorized"}),
             }
 
         logger.info("Query recieved, generating embedding!")
