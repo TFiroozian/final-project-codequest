@@ -9,12 +9,12 @@ Globals:
     Timeout: 10
 
     VpcConfig:
-      # Copied this value from AWS conseol - these the sg ids of the default vpc 
+      # Copied this value from AWS console - these the sg ids of the default vpc 
       SecurityGroupIds:
         - sg-0b227ce014f4ad669
       SubnetIds:
-        # TODO: the default AWS VPC only had public subnets so I deployed the Lambda in the public subnet 
-        # As an improvement for the final submission make the subnets private and add a natgateway to VPC
+      # The subnet in the template is a private subnet connected to a NAT gateway. 
+      # It is not accessible from external networks but allows outbound internet access for internal resources.
         - subnet-0e11865559c05c6a0
 
     # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel.
@@ -36,6 +36,8 @@ Resources:
       Environment:
         Variables:
           OPENSEARCH_HOST: !Join [ "", [ "https://", !ImportValue OpensearchDBEndpointURL ] ] 
+          # Read secret from AWS secret manager 
+          # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/dynamic-references-secretsmanager.html
           API_KEY: '{{resolve:secretsmanager:APIKeyF5CDB6B6-xdQDdD707EsP}}'
           OPENSEARCH_INDEX_NAME: "code-snippets-embeddings"
           BEDROCK_MODEL_ID: amazon.titan-embed-text-v2:0
@@ -72,6 +74,8 @@ Resources:
           OPENSEARCH_HOST: !Join [ "", [ "https://", !ImportValue OpensearchDBEndpointURL ] ] 
           OPENSEARCH_INDEX_NAME: "code-snippets-embeddings"
           BEDROCK_MODEL_ID: amazon.titan-embed-text-v2:0
+          # Read secret from AWS secret manager 
+          # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/dynamic-references-secretsmanager.html
           SERVICE_ACCOUNT_KEY: '{{resolve:secretsmanager:GCloudServiceAccountKeyABF9-QajhxE1lrMDk}}'
           POWERTOOLS_SERVICE_NAME: QueryFunction
           POWERTOOLS_LOG_LEVEL: INFO 
