@@ -11,7 +11,7 @@ Follow the steps below to build, run, and test the application locally using [AW
 
 ---
 
-### 0. Start OpenSearch and Dashboard UI with Docker
+### 0. Start Dependencies in Docker
 
 Make sure Docker is installed and running. Then launch OpenSearch and its UI:
 
@@ -33,7 +33,7 @@ AWS_SAM_LOCAL=true sam build --template-file template.yaml --no-cached
 
 ### 2. Invoke Ingestion Function Locally
 
-Ensure your Google Cloud service account key is available. This function indexes a sample set of documents in OpenSearch.
+Ensure the Google Cloud service account key is available. This function indexes a sample set of documents in OpenSearch.
 
 > ℹ️ The `--docker-network codequest_codequest` flag ensures SAM runs in the same Docker network as OpenSearch.
 

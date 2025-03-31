@@ -23,16 +23,18 @@ if os.getenv("AWS_SAM_LOCAL") != "true":
 
 def lambda_handler(event, context):
     """
-    AWS Lambda entry point. Expects 'query' in the event payload to run the search.
-    For example, your event JSON might look like:
+    AWS Lambda entry point.
+    This function handles incoming requests and expects a 'query' key in the event payload.
+
+    Example event:
     {
-      "query": "How to query in bigquery and store results in Elasticsearch?"
+        "query": "How to query in BigQuery and store results in Elasticsearch?"
     }
+
+    Returns the handler response or a 500 error if an exception occurs.
     """
     try:
-        return QueryHandler(embedding_svc, bedrock_client, api_key).handle(
-            event, context
-        )
+        return QueryHandler(embedding_svc, bedrock_client, api_key).handle(event, context)
     except Exception as e:
         logger.exception("Unexpected Error", e)
         return {

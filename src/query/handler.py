@@ -8,6 +8,10 @@ logger = Logger()
 
 
 class QueryHandler:
+    """
+    Handles user queries by generating embeddings, querying OpenSearch, and formatting the results.
+    """
+
     def __init__(
         self,
         embedding_svc: EmbeddingService,
@@ -19,6 +23,15 @@ class QueryHandler:
         self._api_key = api_key
 
     def _render_response(self, query: str, matched_docs: list[str]) -> str:
+        """
+        Renders a final answer to the user based on matched documents.
+
+        Constructs a prompt using the user query and matched documents, calls the Claude Haiku model
+        via Bedrock, and extracts a markdown-formatted answer from the response.
+
+        Returns:
+            str: A markdown-formatted answer, or raw output if markdown tags are missing.
+        """
 
         system_prompt = """
         You're helping a developer to be more productive. You're given the developer query and a list of answers 
@@ -68,9 +81,7 @@ class QueryHandler:
         start_tag = "<markdown>"
         end_tag = "</markdown>"
         if start_tag in result and end_tag in result:
-            return result[
-                result.find(start_tag) + len(start_tag) : result.rfind(end_tag)
-            ]
+            return result[result.find(start_tag) + len(start_tag) : result.rfind(end_tag)]
         return result
 
     def handle(self, event, context):
